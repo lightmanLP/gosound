@@ -1,30 +1,56 @@
-def go(sound: str, play_sec: tuple):
-    """
-    sound:str = path to file | directory:/folder/folder2/file
-    play_sec:tuple = (1.4:int/float, 5:int/float)
+from sys import getfilesystemencoding
+from ctypes import c_buffer, windll
+from abc import ABC, abstractmethod
+from typing import Tuple
+from random import random
 
-    /////////////////////////////////////////////////////////
-    HINTS:
+
+class AbstractPlaySound(ABC):
+    """Abstract class of PlaySound"""
+    @abstractmethod
+    def volume(self, volume_percent: int):
+        """
+        Sets sound volume
+
+        args:
+        volume_percent: int = volume (from 0 to 100)
+        """
+        pass
+
+    @abstractmethod
+    def stop(self):
+        """Stops sound"""
+        pass
+
+
+class PlaySound(AbstractPlaySound):
+    """Plays sound from selected time"""
+    def __init__(self, sound: str, play_sec: Tuple[int or float, int or float]):
+        """
+        sound: str = path to file | directory:/folder/folder2/file
+        play_sec: tuple = start and end of sound | (start, end)
     
-    In variable play_sec decimal float numbers must be less than 3 digits.
+        /////////////////////////////////////////////////////////
+        HINTS:
+        
+        In variable play_sec decimal float numbers must be less than 3 digits.
+    
+        Lib working only on WINDOWS.
+    
+        /////////////////////////////////////////////////////////
+        """
+        alias = f'playsound_{random()}'
+        play_start, play_stop = [int(i * 1000) for i in play_sec]
+        self._winCommand(f'open "{sound}" alias {alias}')
+        self._winCommand(f'set {alias} time format milliseconds')
+        self._winCommand(f'play {alias} from {play_start} to {play_stop}')
 
-    Lib working only in WINDOWS OS.
-
-    /////////////////////////////////////////////////////////
-    """
-    from ctypes import c_buffer, windll
-    from random import random
-    from sys    import getfilesystemencoding
-
-    def winCommand(*command):
+    def _winCommand(self, command: str):
+        """I rly don't know wtf is this"""
         buf = c_buffer(255)
-        command = ' '.join(command).encode(getfilesystemencoding())
+        command = command.encode(getfilesystemencoding())
         errorCode = int(windll.winmm.mciSendStringA(command, buf, 254, 0))
 
-    alias = 'playsound_' + str(random())
-    winCommand('open "' + sound + '" alias', alias)
-    winCommand('set', alias, 'time format milliseconds')
-    winCommand('play', alias, f'from {str(int(play_sec[0]*1000))} to {str(int(play_sec[1]*1000))}')
 
 if __name__ == '__main__':
     print("V1.0 | SUPPORT OS: \n1)Windows\n/Author: @BTDIZP/GitHub rep: ")
